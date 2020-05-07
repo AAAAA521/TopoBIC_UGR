@@ -1,0 +1,50 @@
+#############################################################################
+# This script combines the results from the Gamma-X-M-Gamma sweep
+# and plots the frequency spectrum fs from the bandstructure object
+# results over k, and the bandstructure.
+# The bandstructure information is extracted using tolerance and num_band
+# specified by the user at the beginning of the script.
+#
+# Properties:     
+# a:            period used to normalize the frequency (f_norm=f*a/c)
+#               in this case the square lattice period
+# f_band:       Frequencies of bands in units of Hz
+# f_band_norm:  Frequencies of bands in units of Hz * a / c
+#############################################################################
+# User Defined properties:
+tolerance = 1e-4; #tolerance for finding peaks and accepting bands
+#                 setting this too low will result in noisy data where sidelobes of
+#                 peaks are interpreted as new bands
+#                 setting it too high will mean that some bands are not found 
+num_band = 2;    #number of bands to search for in the bandstructure
+#
+#############################################################################
+
+runsweep; # run all  sweeps
+
+N_point = 60;
+
+# get a from model
+a = getnamed("::model","ax");
+
+# get fs data from the sweeps
+sweepname="Gamma-X";
+spectrum=getsweepresult(sweepname,"spect_com");
+#spectrum=getsweepresult(sweepname,"spectrum");
+
+f=c/spectrum.lambda;
+fs_all=matrix(length(f),N_point); # initialize matrix to store fs data in
+fs_all(1:length(f),1:N_point)=spectrum.fs;
+
+
+# simple imaging of fs vs k
+image(1:N_point,f,transpose(fs_all),"k (Gamma-X)","f (Hz)","bandstructure, logscale","logplot");
+image(1:N_point,f,transpose(fs_all),"k (Gamma-X)","f (Hz)","bandstructure, linearscale");
+setplot("colorbar min",0);
+setplot("colorbar max",max(fs_all)*1e-4);
+
+f_norm = f*a/c;
+image((1:N_point)/N_point*0.2,f_norm,transpose(fs_all),"kx*a/(2pi)(Gamma-X)","f*a/c (Hz)","bandstructure");
+
+
+
